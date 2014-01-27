@@ -58,12 +58,12 @@ function wp_arch_ss_enqueue() {
     wp_enqueue_style('wp_arch_slideshow_styles', plugins_url('flexslider.css', __FILE__), array(), '01', 'all');
 
     // If jQuery is not loaded, load jQuery
-    wp_enqueue_script('wp_arch_jquery', "http" . ($_SERVER['SERVER_PORT'] == 443 ? "s" : "") . "://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js", array(), '1.8', true);
+    wp_enqueue_script('jquery');
 
     // enqueue script | @Dependents: jQuery
-    wp_enqueue_script('wp_arch_slideshow_scripts', plugins_url('jquery.flexslider-min.js', __FILE__), array('wp_arch_jquery'), "1", true);
+    wp_enqueue_script('wp_arch_slideshow_scripts', plugins_url('jquery.flexslider-min.js', __FILE__), array('jquery'), "1", true);
 
-    // enqueue script | @Dependents: jQuery & wp_arch_lightbox_scripts
+    // enqueue script | @Dependents: jQuery & wp_arch_slideshow_scripts
     wp_enqueue_script('wp_arch_slideshow_scripts_init', plugins_url('init.js', __FILE__), array('wp_arch_slideshow_scripts'), "1", true);
 }
 
