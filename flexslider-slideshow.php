@@ -54,6 +54,8 @@ add_action('init', 'wp_arch_ss_init');
 // http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
 function wp_arch_ss_enqueue() {
     
+    if ( is_front_page() && !is_admin() ) {
+    
     // enqueue css
     wp_enqueue_style('wp_arch_slideshow_styles', plugins_url('flexslider.css', __FILE__), array(), '01', 'all');
 
@@ -65,6 +67,8 @@ function wp_arch_ss_enqueue() {
 
     // enqueue script | @Dependents: jQuery & wp_arch_slideshow_scripts
     wp_enqueue_script('wp_arch_slideshow_scripts_init', plugins_url('init.js', __FILE__), array('wp_arch_slideshow_scripts'), "1", true);
+    
+    }
 }
 
 
