@@ -1,6 +1,6 @@
 <?php  
 /* 
-    Plugin Name: wp-Architect Homepage Flexslider Slideshow  
+    Plugin Name: Homepage Slideshow  
     Description: Homepage Flexslider Slideshow for WP-Architect Theme
     Author: Matthew Ell 
     Version: 1.0 
@@ -34,7 +34,7 @@ function wp_arch_ss_init() {
             'not_found_in_trash' => __('No events found in Trash'), 
             'parent_item_colon' => ''
         ),
-        'description'  => 'Nivo Homepage Slideshow',
+        'description'  => 'Homepage Slideshow',
         'exclude_from_search' => true,
         'hierarchical' => true,
         'supports' => array(  
