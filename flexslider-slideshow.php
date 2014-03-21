@@ -1,6 +1,6 @@
 <?php  
 /* 
-    Plugin Name: Homepage Slideshow  
+    Plugin Name: WP-Architect Homepage Slideshow
     Description: Homepage Flexslider Slideshow for WP-Architect Theme
     Author: Matthew Ell 
     Version: 1.0 
@@ -34,6 +34,8 @@ function wp_arch_ss_init() {
             'not_found_in_trash' => __('No events found in Trash'), 
             'parent_item_colon' => ''
         ),
+        'menu_position' => 5, // Show below Posts
+        'menu_icon' => '' ,
         'description'  => 'Homepage Slideshow',
         'exclude_from_search' => true,
         'hierarchical' => true,
@@ -49,6 +51,16 @@ function wp_arch_ss_init() {
 }  
 
 add_action('init', 'wp_arch_ss_init');
+
+// Add Menu Icon to Admin Sidebar
+// http://mannieschumpert.com/blog/using-wordpress-3-8-icons-custom-post-types-admin-menu/
+// http://melchoyce.github.io/dashicons/
+function add_menu_icons_styles() {
+    echo '<style>#menu-posts-np_images div.wp-menu-image:before { content: "\f233"; }</style>';
+}
+
+add_action( 'admin_head', 'add_menu_icons_styles' );
+
 
 // Enqueue Styles and Scripts 
 // http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
@@ -70,16 +82,13 @@ function wp_arch_ss_enqueue() {
     
     }
 }
-
-
 add_action('wp_enqueue_scripts', 'wp_arch_ss_enqueue');
 
 
-// // Create Image Size for Slides
-add_image_size('np_function', 1280, 425, true); 
-
 // // Thumbnail Support
 add_theme_support( 'post-thumbnails' ); 
+// // Create Image Size for Slides
+add_image_size('np_function', 1024, 425, true); 
 
 // // // Create Slideshow
 function np_function( $atts) { 
@@ -109,7 +118,7 @@ function np_function( $atts) {
         while ($query->have_posts()) {  
             $query->the_post();
             $id = get_the_ID();
-            $type = array( 1280,425);
+            $type = array( 1024,425);
             $the_url = wp_get_attachment_image_src(get_post_thumbnail_id($id), $type);
             $the_link = get_post_meta($id, 'link', true);
 
