@@ -6,19 +6,27 @@
     Version: 1.0 
 */  
 
-// * jQuery FlexSlider v2.2.0
-// * http://www.woothemes.com/flexslider/
-// *
-// * Copyright 2012 WooThemes
-// * Free to use under the GPLv2 license.
-// * http://www.gnu.org/licenses/gpl-2.0.html
-// *
-// * Contributing author: Tyler Smith (@mbmufffin)
+/*  Copyright 2014  Matthew Ell  (email : ell.matthew@gmail.com)
 
-// Creates Admin Menu "Slides" Custom Post type
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, version 2, as 
+    published by the Free Software Foundation.
 
-function wp_arch_ss_init() {  
-    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+// Create Custom Post Type for Slides 
+add_action('init', 'wp_arch_ss_cpt_init');
+function wp_arch_ss_cpt_init() {  
+    // Register Custom Post Type
+    // http://codex.wordpress.org/Function_Reference/register_post_type
     $args = array(  
         'public' => true,  
         'labels' => array(
@@ -42,28 +50,13 @@ function wp_arch_ss_init() {
         'supports' => array(  
             'title',  
             'thumbnail',
-            'custom-fields',
-            'page-attributes'
         )
-    ); 
-    // http://codex.wordpress.org/Function_Reference/register_post_type
-    register_post_type('np_images', $args);
-}  
-
-add_action('init', 'wp_arch_ss_init');
-
-// Add Menu Icon to Admin Sidebar
-// http://mannieschumpert.com/blog/using-wordpress-3-8-icons-custom-post-types-admin-menu/
-// http://melchoyce.github.io/dashicons/
-function add_menu_icons_styles() {
-    echo '<style>#menu-posts-np_images div.wp-menu-image:before { content: "\f233"; }</style>';
+    );
+    register_post_type('wp_arch_ss_slide', $args);
 }
 
-add_action( 'admin_head', 'add_menu_icons_styles' );
-
-
 // Enqueue Styles and Scripts 
-// http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
+add_action('wp_enqueue_scripts', 'wp_arch_ss_enqueue');
 function wp_arch_ss_enqueue() {
     
     if ( is_front_page() && !is_admin() ) {
@@ -82,16 +75,128 @@ function wp_arch_ss_enqueue() {
     
     }
 }
-add_action('wp_enqueue_scripts', 'wp_arch_ss_enqueue');
 
+/* Meta Box Fields Set Up ////////////////////////////////// */
+// Add Custom Meta Boxes
+add_action( 'add_meta_boxes', 'wp_arch_ss_add_meta_boxes');
+function wp_arch_ss_add_meta_boxes() {
+    // Caption Meta Box
+    add_meta_box( 'wp_arch_ss_metabox_options', 'Slide Options', 'wp_arch_ss_metabox_cb', 'wp_arch_ss_slide', 'normal', 'default', array() );
+}
 
-// // Thumbnail Support
-add_theme_support( 'post-thumbnails' ); 
-// // Create Image Size for Slides
-add_image_size('np_function', 1024, 425, true); 
+// Meta box output
+function wp_arch_ss_metabox_cb( $post ) {
 
-// // // Create Slideshow
-function np_function( $atts) { 
+    // Add an nonce field so we can check for it later.
+    wp_nonce_field( 'wp_arch_ss_metabox_action', 'wp_arch_ss_metabox_nonce' );
+    
+    // Use get_post_meta() to retrieve an existing value from the database and use the value for the form.
+    $wp_arch_ss_stored_meta = get_post_meta( $post->ID );
+    
+    ?>
+    
+    <label for="wp_arch_ss_metabox_link_text"><?php _e( 'Add a URL: ', 'wp_arch_ss_textdomain' ); ?> <input id="wp_arch_ss_metabox_link_text" name="wp_arch_ss_metabox_link_text" value="<?php if ( isset ( $wp_arch_ss_stored_meta['wp_arch_ss_metabox_link_text'] ) ) echo $wp_arch_ss_stored_meta['wp_arch_ss_metabox_link_text'][0]; ?>" /></label>
+    <br /> <br />
+    <label for="wp_arch_ss_metabox_caption_text">
+        <?php _e( 'Add a caption: ', 'wp_arch_ss_textdomain' ); ?>
+    </label>
+    <br/> 
+    <textarea style="width:100%;" rows="5" id="wp_arch_ss_metabox_caption_text" name="wp_arch_ss_metabox_caption_text"><?php if ( isset ( $wp_arch_ss_stored_meta['wp_arch_ss_metabox_caption_text'] ) ) echo $wp_arch_ss_stored_meta['wp_arch_ss_metabox_caption_text'][0]; ?></textarea>
+
+    <?php 
+}
+// Save Meta Box Data
+add_action( 'save_post', 'wp_arch_ss_metabox_save_data' );
+function wp_arch_ss_metabox_save_data( $post_id ) {
+ 
+    // Checks save status
+    $is_autosave = wp_is_post_autosave( $post_id );
+    $is_revision = wp_is_post_revision( $post_id );
+    $is_valid_nonce = ( isset( $_POST[ 'prfx_nonce' ] ) && wp_verify_nonce( $_POST[ 'prfx_nonce' ], basename( __FILE__ ) ) ) ? 'true' : 'false';
+ 
+    // Exits script depending on save status
+    if ( $is_autosave || $is_revision || !$is_valid_nonce ) {
+        return;
+    }
+ 
+    // Checks for inputs and sanitizes/saves if needed
+    if( isset( $_POST[ 'wp_arch_ss_metabox_caption_text' ] ) ) {
+        update_post_meta( $post_id, 'wp_arch_ss_metabox_caption_text', sanitize_text_field( $_POST[ 'wp_arch_ss_metabox_caption_text' ] ) );
+    }
+    if( isset( $_POST[ 'wp_arch_ss_metabox_link_text' ] ) ) {
+        update_post_meta( $post_id, 'wp_arch_ss_metabox_link_text', sanitize_text_field( $_POST[ 'wp_arch_ss_metabox_link_text' ] ) );
+    }
+ 
+}
+
+/* Options Setup ////////////////////////////////// */
+// Init
+add_action('admin_init' , 'wp_arch_ss_opt_init');
+function wp_arch_ss_opt_init() {
+    // Register Fields
+    register_setting('wp_arch_ss_options' , 'wp_arch_ss_slide_opt_width' );
+    register_setting('wp_arch_ss_options' , 'wp_arch_ss_slide_opt_height' );
+
+    // Thumbnail Support
+    add_theme_support( 'post-thumbnails' ); 
+
+    // Create Image Size for Slides
+    $wp_arch_ss_opt_width_data = get_option('wp_arch_ss_slide_opt_width');
+    $wp_arch_ss_opt_height_data = get_option('wp_arch_ss_slide_opt_height');
+
+    // Add Thumbnail support
+    add_image_size('wp_arch_ss_slide_image', $wp_arch_ss_opt_width_data, $wp_arch_ss_opt_height_data, true); 
+}
+
+// Options page output
+function wp_arch_ss_options_page() {
+    ?>
+    <div class="wrap">
+        <h2>Homepage Slideshow Settings</h2>
+        <?php // If the form has been saved, show confim message ?>
+        <?php if( isset($_GET['settings-updated']) ) { ?>
+            <div id="message" class="updated">
+                <p><strong><?php _e('Settings saved.') ?></strong></p>
+                <p>You must <a href="/wp-admin/plugin-install.php?tab=search&type=term&s=regenerate+thumbnails">regenerate thumbnails</a> before new image sizes take effect.</p>
+            </div>
+        <?php } ?>
+        <p>Configure homepage slideshow settings below:</p>
+        <form method="post" action="options.php" id="wp_arch_ss_options_form">
+        <?php settings_fields( 'wp_arch_ss_options' ); ?>
+            <table class="form-table">
+                <tbody>
+                    <tr>
+                        <th scope="row">Default Slide Size</th>
+                        <td>
+                            <label for="wp_arch_ss_slide_opt_width">Width</label>
+                            <input type="text" name="wp_arch_ss_slide_opt_width" id="wp_arch_ss_slide_opt_width" value="<?php echo esc_attr(get_option('wp_arch_ss_slide_opt_width') ); ?>" class="small-text" />
+                            <label for="wp_arch_ss_slide_opt_height">Height</label>
+                            <input type="text" name="wp_arch_ss_slide_opt_height" id="wp_arch_ss_slide_opt_height" value="<?php echo esc_attr(get_option('wp_arch_ss_slide_opt_height') ); ?>" class="small-text" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+        </form>
+    </div>
+    <?php 
+}
+
+// Add Slide Settings to menu
+add_action( 'admin_menu' , 'wp_arch_ss_plugin_menu' );
+function wp_arch_ss_plugin_menu() {
+    add_submenu_page( 'edit.php?post_type=wp_arch_ss_slide' , 'Slideshow Settings', 'Slide Settings', 'manage_options', 'wp_arch_ss_plugin', 'wp_arch_ss_options_page' );
+}
+
+// Add Menu Icon to Admin Sidebar
+add_action( 'admin_head', 'add_menu_icons_styles' );
+function add_menu_icons_styles() {
+    echo '<style>#menu-posts-wp_arch_ss_slide div.wp-menu-image:before { content: "\f233"; }</style>';
+}
+
+/* Output Slideshow ////////////////////////////////// */
+add_shortcode('slideshow', 'wp_arch_ss_function');
+function wp_arch_ss_function( $atts) { 
 
     extract( shortcode_atts ( array(
         'width' => '',
@@ -99,7 +204,7 @@ function np_function( $atts) {
         ), $atts ) ); 
     
     $args = array(  
-        'post_type' => 'np_images',  
+        'post_type' => 'wp_arch_ss_slide',  
         'posts_per_page' => -1,
         'orderby' => 'menu_order',
         'order' => 'ASC'
@@ -118,14 +223,18 @@ function np_function( $atts) {
         while ($query->have_posts()) {  
             $query->the_post();
             $id = get_the_ID();
-            $type = array( 1024,425);
+            $type = 'wp_arch_ss_slide_image';
             $the_url = wp_get_attachment_image_src(get_post_thumbnail_id($id), $type);
-            $the_link = get_post_meta($id, 'link', true);
+            $meta_data = get_post_meta($id);
 
-            if ($the_link == '') {
-                $result .='<li><img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/></li>';
+            if ( !isset( $meta_data['wp_arch_ss_metabox_link_text'][0] ) ) {
+                $result .='<li><img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>'; 
+                if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
+                $result .='</a></li>';
             } else {
-                $result .='<li><a href="'.$the_link.'">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/></a></li>';
+                $result .='<li><a href="'.$meta_data['wp_arch_ss_metabox_link_text'][0].'">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>';
+                if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
+                $result .='</a></li>';
             }
         }
     } else {
@@ -139,7 +248,5 @@ function np_function( $atts) {
     $result .='</section>';  
     return $result;  
 }  
-
-add_shortcode('np-shortcode', 'np_function');  
 
 ?>
