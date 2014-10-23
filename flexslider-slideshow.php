@@ -50,6 +50,7 @@ function wp_arch_ss_cpt_init() {
         'supports' => array(  
             'title',  
             'thumbnail',
+            'page-attributes'
         )
     );
     register_post_type('wp_arch_ss_slide', $args);
@@ -105,6 +106,7 @@ function wp_arch_ss_metabox_cb( $post ) {
 
     <?php 
 }
+
 // Save Meta Box Data
 add_action( 'save_post', 'wp_arch_ss_metabox_save_data' );
 function wp_arch_ss_metabox_save_data( $post_id ) {
@@ -157,7 +159,7 @@ function wp_arch_ss_options_page() {
         <?php if( isset($_GET['settings-updated']) ) { ?>
             <div id="message" class="updated">
                 <p><strong><?php _e('Settings saved.') ?></strong></p>
-                <p>You must <a href="/wp-admin/plugin-install.php?tab=search&type=term&s=regenerate+thumbnails">regenerate thumbnails</a> before new image sizes take effect.</p>
+                <p>You must <a href="/wp-admin/plugin-install.php?tab=search&type=term&s=regenerate+thumbnails">regenerate thumbnails</a> before new image sizes take effect on images that already exist in the Media Library.</p>
             </div>
         <?php } ?>
         <p>Configure homepage slideshow settings below:</p>
@@ -182,7 +184,7 @@ function wp_arch_ss_options_page() {
     <?php 
 }
 
-// Add Slide Settings to menu
+// Add Slide Settings
 add_action( 'admin_menu' , 'wp_arch_ss_plugin_menu' );
 function wp_arch_ss_plugin_menu() {
     add_submenu_page( 'edit.php?post_type=wp_arch_ss_slide' , 'Slideshow Settings', 'Slide Settings', 'manage_options', 'wp_arch_ss_plugin', 'wp_arch_ss_options_page' );
@@ -247,6 +249,6 @@ function wp_arch_ss_function( $atts) {
     $result .= '</div>';   
     $result .='</section>';  
     return $result;  
-}  
-
-?>
+}
+/* Inlcude Simple Page Ordering  */
+include 'simple-page-ordering.php';
