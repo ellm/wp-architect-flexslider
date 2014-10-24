@@ -229,7 +229,7 @@ function wp_arch_ss_function( $atts) {
             $the_url = wp_get_attachment_image_src(get_post_thumbnail_id($id), $type);
             $meta_data = get_post_meta($id);
 
-            if ( !isset( $meta_data['wp_arch_ss_metabox_link_text'][0] ) ) {
+            if ( $meta_data['wp_arch_ss_metabox_link_text'][0] == '' ) {
                 $result .='<li><img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>'; 
                 if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
                 $result .='</a></li>';
