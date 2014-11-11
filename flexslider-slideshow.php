@@ -232,7 +232,7 @@ function wp_arch_ss_function( $atts) {
             if ( $meta_data['wp_arch_ss_metabox_link_text'][0] == '' ) {
                 $result .='<li><img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>'; 
                 if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
-                $result .='</a></li>';
+                $result .='</li>';
             } else {
                 $result .='<li><a href="'.$meta_data['wp_arch_ss_metabox_link_text'][0].'">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>';
                 if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
