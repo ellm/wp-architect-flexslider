@@ -93,10 +93,14 @@ function wp_arch_ss_metabox_cb( $post ) {
     
     // Use get_post_meta() to retrieve an existing value from the database and use the value for the form.
     $wp_arch_ss_stored_meta = get_post_meta( $post->ID );
-    
     ?>
     
     <label for="wp_arch_ss_metabox_link_text"><?php _e( 'Add a URL: ', 'wp_arch_ss_textdomain' ); ?> <input id="wp_arch_ss_metabox_link_text" name="wp_arch_ss_metabox_link_text" value="<?php if ( isset ( $wp_arch_ss_stored_meta['wp_arch_ss_metabox_link_text'] ) ) echo $wp_arch_ss_stored_meta['wp_arch_ss_metabox_link_text'][0]; ?>" /></label>
+    <br /> <br />
+    <label for="wp_arch_ss_metabox_link_checkbox">
+        <?php _e( 'Open link in a new window ?: ', 'wp_arch_ss_textdomain' ); ?> 
+        <input type="checkbox" id="wp_arch_ss_metabox_link_checkbox" name="wp_arch_ss_metabox_link_checkbox" value="yes" <?php if ( isset ( $wp_arch_ss_stored_meta['wp_arch_ss_metabox_link_checkbox'] ) ) checked( $wp_arch_ss_stored_meta['wp_arch_ss_metabox_link_checkbox'][0], 'yes' ); ?> />
+    </label>
     <br /> <br />
     <label for="wp_arch_ss_metabox_caption_text">
         <?php _e( 'Add a caption: ', 'wp_arch_ss_textdomain' ); ?>
@@ -127,6 +131,12 @@ function wp_arch_ss_metabox_save_data( $post_id ) {
     }
     if( isset( $_POST[ 'wp_arch_ss_metabox_link_text' ] ) ) {
         update_post_meta( $post_id, 'wp_arch_ss_metabox_link_text', sanitize_text_field( $_POST[ 'wp_arch_ss_metabox_link_text' ] ) );
+    }
+    // Checkbox
+    if( isset( $_POST[ 'wp_arch_ss_metabox_link_checkbox' ] ) ) {
+        update_post_meta( $post_id, 'wp_arch_ss_metabox_link_checkbox', 'yes' );
+    } else {
+        update_post_meta( $post_id, 'wp_arch_ss_metabox_link_checkbox', '' );
     }
  
 }
@@ -228,15 +238,17 @@ function wp_arch_ss_function( $atts) {
             $type = 'wp_arch_ss_slide_image';
             $the_url = wp_get_attachment_image_src(get_post_thumbnail_id($id), $type);
             $meta_data = get_post_meta($id);
+            $wp_arch_ss_checkbox_target = ($meta_data["wp_arch_ss_metabox_link_checkbox"][0] == "yes" ? '_blank' : '_self' );
 
             if ( $meta_data['wp_arch_ss_metabox_link_text'][0] == '' ) {
                 $result .='<li><img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>'; 
                 if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
                 $result .='</li>';
             } else {
-                $result .='<li><a href="'.$meta_data['wp_arch_ss_metabox_link_text'][0].'">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>';
+                $result .='<li><a href="'.$meta_data['wp_arch_ss_metabox_link_text'][0].'" target="' . $wp_arch_ss_checkbox_target . '">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>';
                 if ( $meta_data['wp_arch_ss_metabox_caption_text'][0] != '') { $result .='<h3 class="flex-caption">' . $meta_data['wp_arch_ss_metabox_caption_text'][0] . '</h3>'; }
                 $result .='</a></li>';
+
             }
         }
     } else {
